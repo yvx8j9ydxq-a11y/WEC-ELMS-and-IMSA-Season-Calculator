@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Endurance Racing Championship Simulator</title>
+<style>
+body { font-family: 'Arial', sans-serif; margin: 0; background: #e0f7ff; color: #003366; }
+h1 { text-align:center; margin:10px 0; }
+.tabs { display: flex; background: linear-gradient(to right, #3399ff, #0066cc); }
+.tab-button { flex: 1; padding: 15px; color: white; cursor: pointer; text-align: center; transition: background 0.3s, transform 0.2s; font-weight: bold; font-size: 1.1em; }
+.tab-button:hover { background: #66b3ff; transform: scale(1.05); }
+.tab-button.active { background: #003366; }
+.tab-content { display: none; padding: 20px; }
+table { border-collapse: collapse; width: 100%; margin-bottom: 20px; background: #cce6ff; font-size: 0.9em; }
+th, td { border: 1px solid #003366; padding: 5px; text-align: center; }
+th { background-color: #99ccff; }
+select { width: 100%; padding: 5px; background: #e6f2ff; color: #003366; border: 1px solid #003366; }
+button { padding: 10px 20px; margin-top: 10px; background: linear-gradient(to right, #3399ff, #0066cc); color: white; border: none; cursor: pointer; font-weight: bold; font-size: 1em; transition: background 0.3s, transform 0.2s; }
+button:hover { background: linear-gradient(to right, #66b3ff, #3399ff); transform: scale(1.05); }
+.full-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+</style>
+</head>
+<body>
+<h1>Endurance Racing Championship Simulator</h1>
+<div class="tabs">
+<div class="tab-button active" id="WEC_tab">WEC</div>
+<div class="tab-button" id="IMSA_tab">IMSA</div>
+<div class="tab-button" id="ELMS_tab">ELMS</div>
+</div>
+<div id="WEC" class="tab-content"></div>
+<div id="IMSA" class="tab-content"></div>
+<div id="ELMS" class="tab-content"></div>
+<script>
+const seriesData = {
+  WEC: {
+    classes: ['Hypercar','LMGT3'],
+    cars: {
+      Hypercar: ['Aston Martin THOR Valkyrie #007','Aston Martin THOR Valkyrie #009','Toyota Gazoo Racing GR010 Hybrid #7','Toyota Gazoo Racing GR010 Hybrid #8','Cadillac Hertz Team JOTA V-Series.R #12','Cadillac Hertz Team JOTA V-Series.R #38','BMW M Team WRT M Hybrid V8 #15','BMW M Team WRT M Hybrid V8 #20','Genesis Magma Racing GMR-001 #17','Genesis Magma Racing GMR-001 #19','Alpine Endurance Team A424 #35','Alpine Endurance Team A424 #36','Ferrari AF Corse 499P #50','Ferrari AF Corse 499P #51','AF Corse 499P #83','Peugeot TotalEnergies 9X8 #93','Peugeot TotalEnergies 9X8 #94'],
+      LMGT3: ['GARAGE 59 McLaren 720S #21','VISTA AF CORSE Ferrari 296 #21','HEART OF RACING TEAM Aston Martin #23','HEART OF RACING TEAM Aston Martin #27','TEAM WRT BMW M4 #32','TF SPORT Corvette Z06 #33','RACING TEAM TURKEY BY TF Corvette Z06 #34','VISTA AF CORSE Ferrari 296 #54','GARAGE 59 McLaren 720S #58','IRON LYNX Mercedes-AMG #61','TEAM WRT BMW M4 #69','PROTON COMPETITION Ford Mustang #77','AKKODIS ASP Lexus RC F #78','IRON LYNX Mercedes-AMG #79','AKKODIS ASP Lexus RC F #87','PROTON COMPETITION Ford Mustang #88','MANTHEY DK ENGINEERING Porsche 911 #91','THE BEND MANTHEY Porsche 911 #92']
+    },
+    races: [
+      {name:'Qatar 1812km', multiplier:1.5},{name:'6 Hours of Imola', multiplier:1},{name:'6 Hours of Spa', multiplier:1},{name:'24 Hours of Le Mans', multiplier:2},{name:'6 Hours of Sao Paolo', multiplier:1},{name:'6 Hours of COTA', multiplier:1},{name:'6 Hours of Fuji', multiplier:1},{name:'8 Hours of Bahrain', multiplier:1.5}
+    ]
+  },
+  IMSA: {
+    classes: ['GTP','LMP2','GTD Pro','GTD'],
+    cars: {
+      GTP: ['Porsche Penske Motorsport #6','Porsche Penske Motorsport #7','Cadillac Wayne-Taylor Racing #10','Aston Martin THOR Team #23','BMW M Team WRT #24','BMW M Team WRT #25','Cadillac Whelen #31','Cadillac Wayne-Taylor Racing #40','Acura Meyer Shank Racing #60','JDC-Miller Porsche #85','Acura Meyer Shank Racing #93'],
+      LMP2: ['United Autosports USA #2','Crowdstrike Racing By APR #04','Tower Motorsports #8','TDS Racing #11','ERA Motorsport #18','United Autosports USA #22','Intersport Racing #37','Inter Europol Competition #43','Bryan Herta Autosport #52','Team Tonis #61','Pratt Miller Motorsports #73','AO Racing #99'],
+      'GTD Pro': ['Paul Miller Racing #1','Corvette Racing #3','Corvette Racing #4','PFAFF Motorsports #9','Vasser Sullivan Racing #14','Triarsi Competizione* #033','Risi Competizione* #62','Ford Multimatic Motorsports #64','Ford Multimatic Motorsports #65','75 Express* #75','AO Racing #77','Manthey Racing* #911'],
+      GTD: ['Vasser Sullivan Racing #12','13 Motorsports #13','Riley #16','AF Corse* #21','Triarsi Competizione* #023','Heart of Racing Team #27','Conquest Racing #34','DXDT Racing #36','Wayne Taylor Racung #45','Winward Racing #57','Gradient Racing #66','Inception Racing #70','Lone Star Racing* #80','DragonSpeed #81','RS1* #83','Turner Motorsport #96','Wright Motorsport* #120','Manthey Racing* #912']
+    },
+    races: [
+      {name:'Roar Before the Rolex', multiplier:0},{name:'24 Hours of Daytona*', multiplier:2},{name:'Twelve Hours of Sebring*', multiplier:1.5},{name:'Grand Prix of Long Beach^', multiplier:1},{name:'WeatherTech Raceway Laguna Seca', multiplier:1},{name:'Detroit Grand Prix^', multiplier:1},{name:'Sahlens Six Hours of the Glen*', multiplier:1.5},{name:'Chevrolet Grand Prix at CTMP"', multiplier:1},{name:'Motul Sportscar Endurance Grand Prix Road America*', multiplier:1.5},{name:'Michelin GT Challenge at VIR"', multiplier:1},{name:'Battle on The Bricks', multiplier:1.5},{name:'Motul Petit le mans', multiplier:1.5}
+    ]
+  },
+  ELMS: {
+    classes: ['LMP2','LMP2 Pro/Am','LMP3','LMGT3'],
+    cars: {
+      LMP2: ['PROTON COMPETITION #9','VECTOR SPORT #10','IDEC SPORT #18','UNITED AUTOSPORTS #22','NIELSEN RACING #24','ALGARVE PRO RACING #25','IDEC SPORT #28','FORESTIER RACING BY PANIS #29','INTER EUROPOL COMPETITION #34','CLX MOTORSPORT #37','INTER EUROPOL COMPETITION #43'],
+      'LMP2 Pro/Am': ['DKR ENGINEERING #3','VECTOR SPORT #7','TDS RACING #14','ALGARVE PRO RACING #20','UNITED AUTOSPORTS #21','NIELSEN RACING #27','DUQUEINE TEAM #30','CLX MOTORSPORT #47','AF CORSE #83','PROTON COMPETITION #88','AO BY TF #99','ROSSA RACING BY VIRAGE #19'],
+      LMP3: ['DKR ENGINEERING #4','RINALDI RACING #5','TEAM VIRAGE #8','EUROINTERNATIONAL #11','INTER EUROPOL COMPETITION #13','CLX MOTORSPORT #17','RACING SPIRIT OF LEMAN #31','ULTIMATE #35','M RACING #68','R-ACE GP #85'],
+      LMGT3: ['UNITED AUTOSPORTS #23','TF SPORT #33','RICHARD MILLE AF CORSE #50','AF CORSE #51','HIGH CLASS RACING #54','SPIRIT OF RACE #55','KESSEL RACING #57','RACING SPIRIT OF LEMAN #59','QMMF BY IRON LYNX #62','IRON LYNX #63','KESSEL RACING #74','PROTON COMPETITION #77','GR RACING #86','PROTON COMPETITION #91']
+    },
+    races: [
+      {name:'4 Hours of Barcelona', multiplier:1},{name:'4 Hours of Le Castellet', multiplier:1},{name:'4 Hours of Imola', multiplier:1},{name:'4 Hours of Spa', multiplier:1},{name:'4 Hours of Silverstone', multiplier:1},{name:'4 Hours of Portimao', multiplier:1}
+    ]
+  }
+};
+
+const pointsTables = { WEC:[25,18,15,12,10,8,6,4,2,1], IMSA:[350,320,300,280,260,240,220,200,180,160], ELMS:[25,18,15,12,10,8,6,4,2,1] };
+const standings = {};
+const raceSelections = {};
+
+function initializeStandings(){
+  for(const s in seriesData){
+    standings[s]={};
+    seriesData[s].classes.forEach(c=>{
+      standings[s][c]={};
+      seriesData[s].cars[c].forEach(car=>standings[s][c][car]=0);
+    });
+  }
+}
+
+function showTab(series){
+  document.querySelectorAll('.tab-content').forEach(tc=>tc.style.display='none');
+  document.getElementById(series).style.display='block';
+  document.querySelectorAll('.tab-button').forEach(tb=>tb.classList.remove('active'));
+  document.getElementById(series+'_tab').classList.add('active');
+  if(!raceSelections[series]) raceSelections[series]={};
+  resetDropdowns(series);
+}
+
+function resetDropdowns(seriesName){
+  const sData = seriesData[seriesName];
+  sData.classes.forEach(cls=>{
+    const selects = document.getElementsByClassName(seriesName+'_'+cls+'_car');
+    Array.from(selects).forEach((sel,i)=>{
+      sel.value = (raceSelections[seriesName][cls] && raceSelections[seriesName][cls][i]) || '';
+      updateDropdowns(seriesName, cls);
+    });
+  });
+}
+
+function renderSeriesUI(seriesName, containerId){
+  const container = document.getElementById(containerId);
+  const sData = seriesData[seriesName];
+  let html = '<label>Event:</label><select id="'+seriesName+'RaceSelect" onchange="onRaceChange(\''+seriesName+'\')">';
+  sData.races.forEach(r=>{ html+='<option value="'+r.name+'">'+r.name+'</option>'; });
+  html+='</select><div class="full-grid">';
+  sData.classes.forEach(cls=>{
+    html+='<div><h3>'+cls+'</h3><table><tr><th>Position</th><th>Car</th></tr>';
+    sData.cars[cls].forEach((car,i)=>{
+      html+='<tr><td>'+(i+1)+'</td><td><select class="'+seriesName+'_'+cls+'_car" onchange="updateDropdowns(\''+seriesName+'\',\''+cls+'\')"><option value=""></option>';
+      sData.cars[cls].forEach(c=>{ html+='<option value="'+c+'">'+c+'</option>'; });
+      html+='</select></td></tr>';
+    });
+    html+='</table><h4>Standings</h4><table id="'+seriesName+'_'+cls+'_standings"><tr><th>Car</th><th>Points</th></tr></table></div>';
+  });
+  html+='</div><button onclick="submitResults(\''+seriesName+'\')">Submit Results</button>';
+  container.innerHTML = html;
+  updateStandings(seriesName);
+}
+
+function onRaceChange(seriesName){
+  const sData = seriesData[seriesName];
+  sData.classes.forEach(cls=>{
+    const selects = document.getElementsByClassName(seriesName+'_'+cls+'_car');
+    Array.from(selects).forEach(sel=>sel.value='');
+    updateDropdowns(seriesName, cls);
+  });
+}
+
+function updateDropdowns(seriesName, cls){
+  const selects = document.getElementsByClassName(seriesName+'_'+cls+'_car');
+  const selected = Array.from(selects).map(s=>s.value).filter(v=>v);
+  Array.from(selects).forEach(sel=>{
+    const current = sel.value;
+    const options = [''].concat(seriesData[seriesName].cars[cls].filter(c=>!selected.includes(c)||c===current));
+    sel.innerHTML = options.map(c=>' <option value="'+c+'"'+(c===current?' selected':'')+'>'+c+'</option>').join('');
+  });
+}
+
+function submitResults(seriesName){
+  const sData = seriesData[seriesName];
+  const raceName = document.getElementById(seriesName+'RaceSelect').value;
+  const raceObj = sData.races.find(r=>r.name===raceName) || {multiplier:1};
+  sData.classes.forEach(cls=>{
+    const selects = document.getElementsByClassName(seriesName+'_'+cls+'_car');
+    const carOrder = Array.from(selects).map(s=>s.value);
+    raceSelections[seriesName][cls] = carOrder.slice();
+    const ptsTable = pointsTables[seriesName];
+    carOrder.forEach((car,i)=>{ if(car) standings[seriesName][cls][car]+=(ptsTable[i]||0)*(raceObj.multiplier||1); });
+  });
+  updateStandings(seriesName);
+}
+
+function updateStandings(seriesName){
+  const sData = seriesData[seriesName];
+  sData.classes.forEach(cls=>{
+    const table = document.getElementById(seriesName+'_'+cls+'_standings');
+    table.innerHTML='<tr><th>Car</th><th>Points</th></tr>';
+    Object.entries(standings[seriesName][cls]).sort((a,b)=>b[1]-a[1]).forEach(([car,pts])=>{
+      table.innerHTML+='<tr><td>'+car+'</td><td>'+pts+'</td></tr>';
+    });
+  });
+}
+
+document.getElementById('WEC_tab').onclick=()=>showTab('WEC');
+document.getElementById('IMSA_tab').onclick=()=>showTab('IMSA');
+document.getElementById('ELMS_tab').onclick=()=>showTab('ELMS');
+
+initializeStandings();
+renderSeriesUI('WEC','WEC');
+renderSeriesUI('IMSA','IMSA');
+renderSeriesUI('ELMS','ELMS');
+showTab('WEC');
+</script>
+</body>
+</html>
